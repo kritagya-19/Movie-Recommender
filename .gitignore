@@ -1,0 +1,17 @@
+# Python
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/tmdb_cache.sqlite
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Local Dataset (optional - keep if you want it on GitHub)
+# dataset/
+
+# OS files
+.DS_Store
+Thumbs.db
