@@ -8,12 +8,9 @@ movies = pd.read_csv('../dataset/final_dataset.csv')
 # Fill missing (safety)
 movies.fillna('', inplace=True)
 
-# Convert text to vectors
-cv = CountVectorizer(max_features=5000, stop_words='english')
-vectors = cv.fit_transform(movies['tags']).toarray()
-
-# Similarity matrix
-similarity = cosine_similarity(vectors)
+# Convert text to vectors (Keep as SPARSE matrix to save massive memory)
+cv = CountVectorizer(max_features=2500, stop_words='english')
+vectors = cv.fit_transform(movies['tags']) # NO .toarray() here!
 
 def recommend(movie):
     movie = movie.lower()
@@ -22,7 +19,10 @@ def recommend(movie):
         return ["Movie not found"]
     
     index = movies[movies['title'].str.lower() == movie].index[0]
-    distances = similarity[index]
+    
+    # Calculate similarity ON THE FLY for this specific movie only
+    # This prevents the 512MB Out-Of-Memory crash on Render!
+    distances = cosine_similarity(vectors[index], vectors).flatten()
     
     movie_list = sorted(list(enumerate(distances)),
                         reverse=True,
