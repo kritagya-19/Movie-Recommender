@@ -1,6 +1,6 @@
-import { Film, Play } from 'lucide-react';
+import { Film, Play, Plus, Check } from 'lucide-react';
 
-export default function MovieCard({ item, typeBadgeColors, typeColors, onClick }) {
+export default function MovieCard({ item, typeBadgeColors, typeColors, onClick, onToggleWatchlist, isInWatchlist }) {
   const { title, type, poster, rating, year } = item;
   const gradient = typeColors[type] || 'from-gray-900/40 to-gray-950/60';
   const badge = typeBadgeColors[type] || 'bg-white/10 text-white/60 border-white/20';
@@ -59,9 +59,22 @@ export default function MovieCard({ item, typeBadgeColors, typeColors, onClick }
 
             {/* Hover actions */}
             <div className="flex gap-2 mt-3 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <button className="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-brand-red hover:text-white transition-colors duration-200">
+              <button 
+                onClick={(e) => { e.stopPropagation(); onClick(); }}
+                className="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-brand-red hover:text-white transition-colors duration-200"
+              >
                 <Play className="w-3.5 h-3.5" fill="currentColor" /> Details
               </button>
+              
+              {onToggleWatchlist && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onToggleWatchlist(item); }}
+                  className={`p-2 rounded-lg border transition-colors duration-200 ${isInWatchlist ? 'bg-brand-red border-brand-red text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
+                  title={isInWatchlist ? "Remove from My List" : "Add to My List"}
+                >
+                  {isInWatchlist ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                </button>
+              )}
             </div>
           </div>
         </div>

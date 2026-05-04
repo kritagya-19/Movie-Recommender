@@ -1,6 +1,6 @@
-import { Film, Play, Star, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Film, Play, Star, ChevronLeft, ChevronRight, X, Plus, Check } from 'lucide-react';
 
-export default function MovieModal({ movie, onClose }) {
+export default function MovieModal({ movie, onClose, onToggleWatchlist, isInWatchlist }) {
   if (!movie) return null;
 
   return (
@@ -50,10 +50,25 @@ export default function MovieModal({ movie, onClose }) {
             </p>
           )}
 
-          {/* Title */}
-          <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
-            {movie.title}
-          </h2>
+          {/* Title and Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+              {movie.title}
+            </h2>
+            
+            {onToggleWatchlist && (
+              <button 
+                onClick={() => onToggleWatchlist(movie)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 ${isInWatchlist ? 'bg-white/10 text-white hover:bg-brand-red hover:text-white' : 'bg-brand-red text-white hover:scale-105 shadow-[0_0_20px_rgba(229,9,20,0.3)]'}`}
+              >
+                {isInWatchlist ? (
+                  <><Check className="w-4 h-4" /> Added to My List</>
+                ) : (
+                  <><Plus className="w-4 h-4" /> Add to My List</>
+                )}
+              </button>
+            )}
+          </div>
 
           {/* Meta Row */}
           <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-white/60">

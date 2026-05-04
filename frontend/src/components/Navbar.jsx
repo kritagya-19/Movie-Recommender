@@ -1,6 +1,6 @@
 import { Film, Bell, Search } from 'lucide-react';
 
-export default function Navbar({ onLogoClick }) {
+export default function Navbar({ onLogoClick, onMyListClick }) {
   return (
     <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/[0.06]">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -14,10 +14,8 @@ export default function Navbar({ onLogoClick }) {
         </button>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/50">
-          <a href="#" className="text-white transition-colors">Discover</a>
-          <a href="#" className="hover:text-white transition-colors">Trending</a>
-          <a href="#" className="hover:text-white transition-colors">My List</a>
-          <a href="#" className="hover:text-white transition-colors">Community</a>
+          <button onClick={onLogoClick} className="text-white transition-colors hover:text-brand-red">Discover</button>
+          <button onClick={onMyListClick} className="hover:text-white transition-colors">My List</button>
         </div>
 
         <div className="flex items-center gap-5">

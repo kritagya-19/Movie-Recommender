@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search, Film, ChevronRight, Loader2, Sparkles } from 'lucide-react';
 
@@ -18,6 +18,37 @@ function App() {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [showSmartFinder, setShowSmartFinder] = useState(false);
+  const [showWatchlist, setShowWatchlist] = useState(false);
+
+  const [watchlist, setWatchlist] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cinephile_watchlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cinephile_watchlist', JSON.stringify(watchlist));
+  }, [watchlist]);
+
+  const toggleWatchlist = (movie) => {
+    setWatchlist((prev) => {
+      const exists = prev.find((m) => m.title === movie.title);
+      if (exists) {
+        return prev.filter((m) => m.title !== movie.title);
+      } else {
+        return [movie, ...prev];
+      }
+    });
+  };
+
+  const openWatchlist = () => {
+    setShowWatchlist(true);
+    setSearched(true);
+    window.scrollTo(0, 0);
+  };
 
   const typeColors = {
     movie: 'from-blue-900/40 to-blue-950/60',
@@ -34,6 +65,7 @@ function App() {
   // ─── Search Handler ───
   const handleSearch = async (e, overrideQuery) => {
     e?.preventDefault();
+    setShowWatchlist(false);
     const searchTerm = overrideQuery || query;
     if (!searchTerm.trim()) return;
 
@@ -58,6 +90,7 @@ function App() {
 
   // ─── Smart Discover Handler ───
   const handleSmartDiscover = async (filters) => {
+    setShowWatchlist(false);
     setLoading(true);
     setError('');
     setSearched(true);
@@ -104,11 +137,14 @@ function App() {
     setResults([]);
     setSearched(false);
     setError('');
+    setShowWatchlist(false);
   };
+
+  const displayItems = showWatchlist ? watchlist : results;
 
   return (
     <div className="min-h-screen font-sans bg-brand-black">
-      <Navbar onLogoClick={goHome} />
+      <Navbar onLogoClick={goHome} onMyListClick={openWatchlist} />
 
       {/* Hero Section */}
       <div className={`relative flex flex-col items-center justify-center transition-all duration-700 ease-out ${
@@ -204,32 +240,41 @@ function App() {
         )}
       </div>
 
-      {/* Trending Row (shown on homepage before search) */}
-      {!searched && (
+      {/* Trending Row (shown on homepage before search or watchlist) */}
+      {!searched && !showWatchlist && (
         <TrendingRow onCardClick={openModal} />
       )}
 
-      {/* Results Grid */}
-      {results.length > 0 && (
-        <div className="max-w-7xl mx-auto px-6 pb-24 animate-fade-in">
+      {/* Results / Watchlist Grid */}
+      {displayItems.length > 0 && (
+        <div className="max-w-7xl mx-auto px-6 pb-24 animate-fade-in mt-10">
           <div className="flex items-center justify-between mb-8 border-b border-white/[0.06] pb-4">
             <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-3">
               <span className="w-1 h-7 bg-brand-red rounded-full" />
-              Recommended for You
+              {showWatchlist ? 'My List' : 'Recommended for You'}
             </h2>
-            <p className="text-white/30 text-sm hidden sm:block">
-              Based on "<span className="text-white/60">{query}</span>"
-            </p>
+            {!showWatchlist && (
+              <p className="text-white/30 text-sm hidden sm:block">
+                Based on "<span className="text-white/60">{query}</span>"
+              </p>
+            )}
+            {showWatchlist && (
+              <p className="text-white/30 text-sm hidden sm:block">
+                {watchlist.length} items
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-            {results.map((item, idx) => (
+            {displayItems.map((item, idx) => (
               <MovieCard
                 key={idx}
                 item={item}
                 typeColors={typeColors}
                 typeBadgeColors={typeBadgeColors}
                 onClick={() => openModal(item)}
+                onToggleWatchlist={toggleWatchlist}
+                isInWatchlist={watchlist.some(m => m.title === item.title)}
               />
             ))}
           </div>
@@ -237,11 +282,15 @@ function App() {
       )}
 
       {/* Empty state */}
-      {searched && !loading && results.length === 0 && !error && (
+      {(searched || showWatchlist) && !loading && displayItems.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center py-20 text-white/30 animate-fade-in">
           <Film className="w-16 h-16 mb-4 text-white/10" />
-          <p className="text-lg font-medium">No recommendations found</p>
-          <p className="text-sm mt-1">Try searching with a different title</p>
+          <p className="text-lg font-medium">
+            {showWatchlist ? "Your watchlist is empty" : "No recommendations found"}
+          </p>
+          <p className="text-sm mt-1">
+            {showWatchlist ? "Add some movies or shows to get started" : "Try searching with a different title"}
+          </p>
         </div>
       )}
 
@@ -257,7 +306,12 @@ function App() {
 
       {/* Movie Detail Modal */}
       {selectedMovie && !modalLoading && (
-        <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
+        <MovieModal 
+          movie={selectedMovie} 
+          onClose={() => setSelectedMovie(null)} 
+          onToggleWatchlist={toggleWatchlist}
+          isInWatchlist={watchlist.some(m => m.title === selectedMovie.title)}
+        />
       )}
 
       {/* Smart Finder Modal */}
